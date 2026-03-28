@@ -1,0 +1,10 @@
+services:
+  sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.sandbox
+    image: mendify-sandbox:latest
+    volumes:
+      - ..:/workspace
+    working_dir: /workspace
+    command: sleep infinity

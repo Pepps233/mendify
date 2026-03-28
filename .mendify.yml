@@ -1,0 +1,23 @@
+agent:
+  model: claude-sonnet-4-6-20250514
+  max_iterations: 3
+  temperature: 0.2
+
+sandbox:
+  image: mendify-sandbox:latest
+  timeout_seconds: 300
+  memory_limit: 512m
+  build_command: "uv run pytest --tb=short"
+
+allowed_paths:
+  - "**/*.py"
+  - "**/*.toml"
+  - "**/*.yml"
+  - "**/*.yaml"
+  - "**/*.txt"
+  - "**/*.md"
+
+exclude_paths:
+  - ".git/**"
+  - ".venv/**"
+  - "docker/**"

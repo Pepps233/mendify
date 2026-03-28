@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.env.*
+
+# Testing / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+
+# Docker
+docker/sandbox-data/
+
+# Mendify session files
+CLAUDE.md
+progress.txt
+features.json
+init.sh
