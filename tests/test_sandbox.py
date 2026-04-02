@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+import docker.errors
 import pytest
 
 from mendify.config import SandboxConfig
@@ -106,3 +107,29 @@ def test_sandbox_cleanup_idempotent(config, repo_path, mock_docker):
     sandbox.start()
     sandbox.cleanup()
     sandbox.cleanup()  # should not raise
+
+
+def test_sandbox_cleanup_container_not_found(config, repo_path, mock_docker):
+    mock, mock_client = mock_docker
+    mock_container = MagicMock()
+    mock_client.containers.run.return_value = mock_container
+    mock_container.stop.side_effect = docker.errors.NotFound("gone")
+
+    sandbox = Sandbox(config, repo_path)
+    sandbox.start()
+    sandbox.cleanup()  # should swallow NotFound silently
+
+    assert sandbox._container is None
+
+
+def test_sandbox_cleanup_stop_generic_error(config, repo_path, mock_docker):
+    mock, mock_client = mock_docker
+    mock_container = MagicMock()
+    mock_client.containers.run.return_value = mock_container
+    mock_container.stop.side_effect = RuntimeError("unexpected")
+
+    sandbox = Sandbox(config, repo_path)
+    sandbox.start()
+    sandbox.cleanup()  # should log warning but not raise
+
+    assert sandbox._container is None

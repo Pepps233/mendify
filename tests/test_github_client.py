@@ -91,3 +91,52 @@ def test_retry_on_rate_limit(client):
         result = gh.get_failed_workflow_run(1)
 
     assert result.workflow_name == "CI"
+
+
+def test_post_retry_on_server_error(client):
+    gh, mock_http = client
+
+    err_resp = MagicMock()
+    err_resp.status_code = 500
+
+    ok_resp = MagicMock()
+    ok_resp.status_code = 201
+    ok_resp.json.return_value = {"id": 1}
+
+    mock_http.post.side_effect = [err_resp, ok_resp]
+
+    with patch("mendify.github_client.time.sleep"):
+        gh.post_pr_comment(1, "retry test")
+
+    assert mock_http.post.call_count == 2
+
+
+def test_create_commit_and_push(client, monkeypatch):
+    gh, _ = client
+
+    calls = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
+
+    monkeypatch.setattr("mendify.github_client.subprocess.run", fake_run)
+
+    gh.create_commit_and_push("main", "fix: something")
+
+    assert calls[0] == ["git", "add", "-A"]
+    assert calls[1] == ["git", "commit", "-m", "fix: something"]
+    assert calls[2][0:2] == ["git", "push"]
+
+
+def test_context_manager(monkeypatch):
+    monkeypatch.setenv("GITHUB_TOKEN", "tok")
+    monkeypatch.setenv("GITHUB_REPOSITORY", "o/r")
+
+    with patch("mendify.github_client.httpx.Client") as mock_cls:
+        mock_http = MagicMock()
+        mock_cls.return_value = mock_http
+
+        with GitHubClient() as gh:
+            assert gh is not None
+
+        mock_http.close.assert_called_once()
